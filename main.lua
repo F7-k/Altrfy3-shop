@@ -1,111 +1,67 @@
--- [[ Altrfy3 shop - Fixed Input Box Edition ]]
-local SGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-local Main = Instance.new("Frame", SGui)
-local MiniBtn = Instance.new("ImageButton", SGui)
+-- [[ Altrfy3 shop - Super Fixed Edition ]]
+local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
 local File = "Altrfy3_Data.json"
-local Codes = {}
 
--- إعدادات الواجهة (نفس اللي في الصورة 1000113224_2.jpg)
-SGui.Name = "Altrfy3_Secure_" .. math.random(100, 999)
+-- مسح أي نسخة قديمة عشان ما تتداخل القوائم
+if CoreGui:FindFirstChild("Altrfy3_Menu") then
+    CoreGui.Altrfy3_Menu:Destroy()
+end
+
+local SGui = Instance.new("ScreenGui", CoreGui)
+SGui.Name = "Altrfy3_Menu"
+SGui.ResetOnSpawn = false
+
+local Main = Instance.new("Frame", SGui)
 Main.Size = UDim2.new(0, 310, 0, 400)
 Main.Position = UDim2.new(0.5, -155, 0.5, -200)
-Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-Main.Active, Main.Draggable = true, true
-Instance.new("UICorner", Main)
+Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Draggable = true -- تقدر تحرك القائمة
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 15)
 
--- العنوان البنفسجي
+-- العنوان البنفسجي (نفس الصورة)
 local Header = Instance.new("Frame", Main)
-Header.Size = UDim2.new(1, 0, 0, 80)
-Header.BackgroundColor3 = Color3.fromRGB(150, 70, 200) -- اللون البنفسجي الموضح بالصورة
-Instance.new("UICorner", Header)
+Header.Size = UDim2.new(1, 0, 0, 70)
+Header.BackgroundColor3 = Color3.fromRGB(150, 70, 200)
+Header.BorderSizePixel = 0
+Header.ZIndex = 2
+local HeaderCorner = Instance.new("UICorner", Header)
+HeaderCorner.CornerRadius = UDim.new(0, 15)
 
 local Title = Instance.new("TextLabel", Header)
 Title.Size = UDim2.new(1, 0, 1, 0)
 Title.Text = "أبو يوسف - Altrfy3 shop 🇸🇦"
 Title.TextColor3 = Color3.new(1, 1, 1)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 16
+Title.TextSize = 18
 Title.BackgroundTransparency = 1
+Title.ZIndex = 3
 
--- حاوية العناصر (عشان تظهر الخانات مرتبة)
-local Cont = Instance.new("Frame", Main)
-Cont.Size = UDim2.new(1, -40, 1, -100)
-Cont.Position = UDim2.new(0, 20, 0, 90)
-Cont.BackgroundTransparency = 1
-local List = Instance.new("UIListLayout", Cont)
-List.Padding = UDim.new(0, 15)
-List.HorizontalAlignment = Enum.HorizontalAlignment.Center
+-- منطقة الإدخال (ضمان الظهور)
+local Content = Instance.new("Frame", Main)
+Content.Size = UDim2.new(1, 0, 1, -70)
+Content.Position = UDim2.new(0, 0, 0, 70)
+Content.BackgroundTransparency = 1
+Content.ZIndex = 2
 
--- [[ خانة كتابة الكود - تم إصلاح الظهور ]]
-local CodeInput = Instance.new("TextBox", Cont)
-CodeInput.Name = "CodeField"
-CodeInput.Size = UDim2.new(1, 0, 0, 50)
-CodeInput.PlaceholderText = "اكتب الكود هنا..."
+-- خانة الكود (TextBox)
+local CodeInput = Instance.new("TextBox", Content)
+CodeInput.Size = UDim2.new(0, 260, 0, 50)
+CodeInput.Position = UDim2.new(0.5, -130, 0.2, 0)
+CodeInput.PlaceholderText = "أدخل الكود أو IFC"
 CodeInput.Text = ""
-CodeInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+CodeInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 CodeInput.TextColor3 = Color3.new(1, 1, 1)
 CodeInput.Font = Enum.Font.Gotham
-CodeInput.TextSize = 18
+CodeInput.TextSize = 16
+CodeInput.ZIndex = 4
 Instance.new("UICorner", CodeInput)
 
--- زر الدخول الأخضر (كما في الصورة 1000113224_2.jpg)
-local EnterBtn = Instance.new("TextButton", Cont)
-EnterBtn.Size = UDim2.new(1, 0, 0, 60)
-EnterBtn.Text = "دخول"
-EnterBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 0) -- الأخضر الغامق
-EnterBtn.TextColor3 = Color3.new(1, 1, 1)
-EnterBtn.Font = Enum.Font.GothamBold
-EnterBtn.TextSize = 20
-Instance.new("UICorner", EnterBtn)
-
--- [[ وظيفة الوزنيات ]]
-local function ApplySettings(fric, steer)
-    local p = game.Players.LocalPlayer
-    local car = p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.SeatPart
-    if car and car.Parent then
-        car.MaxSteerAngle = steer
-        for _, v in pairs(car.Parent:GetDescendants()) do
-            if v:IsA("BasePart") and (v.Name:find("Wheel") or v:IsA("WheelInstance")) then
-                v.Friction = fric
-            end
-        end
-    end
-end
-
--- واجهة الوزنيات بعد الدخول
-local function ShowOptions()
-    CodeInput.Visible = false
-    EnterBtn.Visible = false
-    
-    local function AddDrift(txt, f, s)
-        local b = Instance.new("TextButton", Cont)
-        b.Size = UDim2.new(1, 0, 0, 45)
-        b.Text = txt
-        b.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        b.TextColor3 = Color3.new(1, 1, 1)
-        Instance.new("UICorner", b)
-        b.MouseButton1Click:Connect(function() ApplySettings(f, s) end)
-    end
-    
-    AddDrift("🔥 هجولة كينق", 0.3, 65)
-    AddDrift("🏎️ هجولة طرب", 0.45, 55)
-    AddDrift("🔄 تصفية الوكالة", 1, 35)
-end
-
--- برمجة زر الدخول
-EnterBtn.MouseButton1Click:Connect(function()
-    if isfile and isfile(File) then Codes = HttpService:JSONDecode(readfile(File)) end
-    
-    if CodeInput.Text == "IFC" then
-        CodeInput.PlaceholderText = "وضع الإدارة مفعل"
-        CodeInput.Text = ""
-        -- هنا يمكنك إضافة وظائف الإدارة
-    elseif Codes[CodeInput.Text] or CodeInput.Text == "yousef" then -- كود تجريبي "yousef"
-        ShowOptions()
-    else
-        CodeInput.Text = ""
-        CodeInput.PlaceholderText = "الكود غير صحيح!"
-    end
-end)
+-- زر الدخول الأخضر (نفس الصورة)
+local EnterBtn = Instance.new("TextButton", Content)
+EnterBtn.Size = UDim2.new(0, 260, 0, 60)
+EnterBtn.Position = UDim2.new(0.5, -130, 0.45, 0)
+EnterBtn.Text
  
